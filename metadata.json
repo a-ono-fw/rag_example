@@ -1,0 +1,6 @@
+{
+  "name": "RAG Large Document Learning Workbench",
+  "description": "大規模文書（31MB PDF）を対象としたRAGチャットボット構築の学習・検証ワークベンチ。Google Colab用ノートブック、Pythonソースコード生成、チャンク分割＆検索シミュレーションを提供。",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
