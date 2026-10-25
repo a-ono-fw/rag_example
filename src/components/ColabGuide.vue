@@ -161,6 +161,13 @@ import { BookOpen, Key, HardDrive, Terminal, HelpCircle, ExternalLink, CheckCirc
         </div>
 
         <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
+          <div class="font-semibold text-slate-200 mb-1">Q. 大量チャンク作成時に 429 ResourceExhausted（レートリミット）が発生しませんか？</div>
+          <p class="text-slate-400 text-[11px] leading-relaxed">
+            Gemini APIの無料枠（Free Tier）では埋め込みリクエスト（<code class="text-slate-300">gemini-embedding-001</code>）に <strong>100回/分</strong> の上限があります。全340ページ（約1,000チャンク）を一括送信すると429エラーが発生するため、本リポジトリのコードでは <strong>50件ごとのバッチ分割・3秒ウェイト・429検知時の15秒自動待機リトライ</strong> を組み込んでいます。エラーで停止せず自動完了する安心設計です。
+          </p>
+        </div>
+
+        <div class="p-3 rounded-lg bg-slate-950 border border-slate-800">
           <div class="font-semibold text-slate-200 mb-1">Q. Gradioの共有URLはずっと使えますか？</div>
           <p class="text-slate-400 text-[11px] leading-relaxed">
             <code class="text-slate-300">share=True</code> で発行される一時URLの有効期限は最大72時間です。またColabのノートブックセルを停止すると接続が切れます。試験・レビューが完了したらノートブックを停止すれば自動的にURLも無効化されるため、セキュリティ面でも安心です。

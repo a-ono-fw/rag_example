@@ -1,13 +1,14 @@
 # RAG Large Document Chatbot Dependencies
-# For Google Colab and Local Python 3.10+
-langchain==0.3.14
-langchain-community==0.3.14
-langchain-google-genai==2.0.8
-chromadb==0.6.3
-pypdf==5.2.0
-gradio==5.12.0
-pandas==2.2.3
-google-genai==2.4.0
-python-dotenv==1.0.1
-rank-bm25==0.2.2
-tabulate==0.9.0
+# Compatible with Google Colab (Python 3.10+) and Local Environments
+langchain>=0.3.0
+langchain-community>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-chroma>=0.2.0
+chromadb>=0.5.0
+pypdf>=5.0.0
+gradio>=5.0.0
+pandas>=2.0.0
+google-genai>=2.0.0
+python-dotenv>=1.0.0
+rank-bm25>=0.2.2
+tabulate>=0.9.0

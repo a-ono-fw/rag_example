@@ -11,8 +11,6 @@ defineEmits<{
     <!-- Hero Header -->
     <div class="border-b border-slate-800 pb-8">
       <div class="flex items-center gap-2 text-xs text-slate-400 mb-2 font-mono">
-        <span>課題2</span>
-        <span>·</span>
         <span>2024年版ものづくり白書 (340ページ・31MB)</span>
         <span>·</span>
         <span>段階的検索アーキテクチャ設計</span>

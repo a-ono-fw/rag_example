@@ -66,7 +66,7 @@ async function downloadAllFiles() {
     <footer class="border-t border-slate-900 bg-slate-950/80 py-6 text-center text-xs text-slate-400">
       <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div class="flex items-center gap-2">
-          <span>【課題2】大規模文書（31MB PDF）RAG チャットボット</span>
+          <span>大規模文書（31MB PDF）RAG チャットボット</span>
           <span>·</span>
           <span>Google Colab &amp; GitHub</span>
         </div>

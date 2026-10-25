@@ -3,9 +3,11 @@ Vector Store Module
 Googleの最新多言語テキスト埋め込みモデル（gemini-embedding-001）と
 ChromaDBを用いて、ドキュメントチャンクのベクトルインデックス作成・類似度検索を行います。
 ※ MRL（Matryoshka Representation Learning）により、次元数を3072から768/1536などに柔軟に調整可能です。
+※ 大規模ドキュメント時の無料枠レートリミット（100件/分）を回避する安全なバッチ分割登録機構を備えています。
 """
 
 import os
+import time
 from typing import List, Tuple, Optional
 from langchain_core.documents import Document
 from langchain_google_genai import GoogleGenerativeAIEmbeddings
@@ -29,7 +31,6 @@ def get_embedding_function(
     if not key:
         raise ValueError("GEMINI_API_KEY が設定されていません。Colabのシークレットまたは環境変数で設定してください。")
 
-    # MRL対応パラメータ（ライブラリバージョンに応じて引数を渡す）
     kwargs = {}
     if output_dimensionality:
         kwargs["output_dimensionality"] = output_dimensionality
@@ -46,11 +47,14 @@ def build_or_load_vector_store(
     persist_directory: str = "./chroma_db",
     api_key: Optional[str] = None,
     collection_name: str = "whitepaper_vectors",
-    output_dimensionality: int = 768
+    output_dimensionality: int = 768,
+    batch_size: int = 50,
+    sleep_seconds: float = 3.0
 ) -> Chroma:
     """
     チャンクからChromaDBのベクトルインデックスを作成、または既存インデックスを読み込みます。
-    Google Colabでは一時ディレクトリに保存されるため、実行セッション中に高速に再利用できます。
+    Google Gemini APIの無料枠レートリミット（100件/分）を回避するため、
+    指定サイズ（デフォルト: 50件）のバッチに分割し、ウェイトと429自動リトライを挟みながら登録します。
     """
     embeddings = get_embedding_function(
         api_key=api_key,
@@ -59,13 +63,43 @@ def build_or_load_vector_store(
     )
 
     if chunks and len(chunks) > 0:
-        print(f"[*] ChromaDB に {len(chunks)} 件のチャンクをベクトル化・インデックス中 (gemini-embedding-001 / {output_dimensionality}次元)...")
-        vector_store = Chroma.from_documents(
-            documents=chunks,
-            embedding=embeddings,
-            persist_directory=persist_directory,
-            collection_name=collection_name
+        total_chunks = len(chunks)
+        print(f"[*] ChromaDB に全 {total_chunks} 件のチャンクをバッチ登録中 ({batch_size}件ずつ、gemini-embedding-001 / {output_dimensionality}次元)...")
+
+        # 空のChromaインスタンスを初期化
+        vector_store = Chroma(
+            collection_name=collection_name,
+            embedding_function=embeddings,
+            persist_directory=persist_directory
         )
+
+        total_batches = (total_chunks + batch_size - 1) // batch_size
+
+        for i in range(0, total_chunks, batch_size):
+            batch = chunks[i : i + batch_size]
+            batch_num = (i // batch_size) + 1
+
+            success = False
+            retry_count = 0
+            while not success:
+                try:
+                    vector_store.add_documents(batch)
+                    processed_count = min(i + len(batch), total_chunks)
+                    print(f"  [+] 進捗: {processed_count}/{total_chunks} 件登録完了 (バッチ {batch_num}/{total_batches})")
+                    success = True
+                    # レートリミット超過を防ぐインターバル
+                    if processed_count < total_chunks:
+                        time.sleep(sleep_seconds)
+                except Exception as e:
+                    err_str = str(e)
+                    if "429" in err_str or "ResourceExhausted" in err_str:
+                        retry_count += 1
+                        wait_sec = 15
+                        print(f"  ⏳ レートリミット（100件/分）を検知。{wait_sec}秒待機して自動リトライします... (試行 {retry_count}回目)")
+                        time.sleep(wait_sec)
+                    else:
+                        raise e
+
         print(f"[+] ベクトルインデックス構築完了: {persist_directory}")
         return vector_store
     else:
