@@ -62,7 +62,7 @@ class WhitepaperRAGApp:
             self.hybrid_engine = HybridSearchEngine(self.keyword_engine, self.vector_engine)
 
             # 5. Gemini LLMの初期化
-            self.llm = get_llm(model_name="gemini-2.5-flash")
+            self.llm = get_llm(model_name="gemini-3.8-flash")
 
             summary = summarize_chunk_stats(self.df_stats)
             status_msg = (
@@ -116,13 +116,17 @@ class WhitepaperRAGApp:
 
     def chat_response(self, message, history, search_mode_label, top_k):
         """
-        指定された検索方式で回答生成
+        指定された検索方式で回答生成 (Gradio 5 messages形式)
         """
+        dict_history = list(history) if history else []
+
         if not self.hybrid_engine:
-            return history + [(message, "⚠️ まず上の『PDFを解析してインデックス作成』を実行してください。")], ""
+            dict_history.append({"role": "user", "content": message})
+            dict_history.append({"role": "assistant", "content": "⚠️ まず上の『PDFを解析してインデックス作成』を実行してください。"})
+            return dict_history, ""
 
         if not message.strip():
-            return history, ""
+            return dict_history, ""
 
         mode_map = {
             "ハイブリッド検索 (BM25 + ベクトル RRF統合) [推奨]": "hybrid",
@@ -151,12 +155,14 @@ class WhitepaperRAGApp:
             else:
                 citations_text += "- 関連資料なし\n"
 
-            history.append((message, answer + citations_text))
-            return history, ""
+            dict_history.append({"role": "user", "content": message})
+            dict_history.append({"role": "assistant", "content": answer + citations_text})
+            return dict_history, ""
 
         except Exception as e:
-            history.append((message, f"❌ 回答生成中にエラーが発生しました: {str(e)}"))
-            return history, ""
+            dict_history.append({"role": "user", "content": message})
+            dict_history.append({"role": "assistant", "content": f"❌ 回答生成中にエラーが発生しました: {str(e)}"})
+            return dict_history, ""
 
 
 def create_ui():
@@ -212,7 +218,8 @@ def create_ui():
                 chatbot = gr.Chatbot(
                     label="対話履歴 (出典付き回答)",
                     height=450,
-                    bubble_full_width=False
+                    bubble_full_width=False,
+                    type="messages"
                 )
                 with gr.Row():
                     msg_input = gr.Textbox(

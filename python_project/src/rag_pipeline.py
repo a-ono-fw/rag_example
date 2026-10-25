@@ -29,7 +29,7 @@ SYSTEM_PROMPT_TEMPLATE = """あなたは「ものづくり白書（令和5年度
 【回答】:"""
 
 
-def get_llm(model_name: str = "gemini-2.5-flash", temperature: float = 0.2, api_key: str = None) -> ChatGoogleGenerativeAI:
+def get_llm(model_name: str = "gemini-3.8-flash", temperature: float = 0.2, api_key: str = None) -> ChatGoogleGenerativeAI:
     key = api_key or os.environ.get("GEMINI_API_KEY")
     if not key:
         raise ValueError("GEMINI_API_KEY が設定されていません。")
