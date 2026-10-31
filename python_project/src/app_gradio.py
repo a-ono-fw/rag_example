@@ -145,18 +145,10 @@ class WhitepaperRAGApp:
             )
 
             answer = result["answer"]
-            sources = result.get("sources", [])
 
-            citations_text = f"\n\n---\n**📚 参照した資料（検索方式: {mode}）:**\n"
-            if sources:
-                for s in sources:
-                    loc = f"{s['chapter']} {s['section']} [p.{s['page']}]" if s.get('section') else f"[p.{s['page']}]"
-                    citations_text += f"- **{loc}** (スコア: {s['score']}) — *「{s['snippet']}」*\n"
-            else:
-                citations_text += "- 関連資料なし\n"
-
+            # Geminiがプロンプトの指示に従ってグルーピング済み出典を含めて回答するため、そのまま返却
             dict_history.append({"role": "user", "content": message})
-            dict_history.append({"role": "assistant", "content": answer + citations_text})
+            dict_history.append({"role": "assistant", "content": answer})
             return dict_history, ""
 
         except Exception as e:
